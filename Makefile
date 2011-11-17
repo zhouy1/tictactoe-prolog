@@ -1,7 +1,7 @@
-all: moves.pl strategy.pl
+all: moves.pl wins.pl
 
 %.pl: %.py
 	python $< > $@
 
 clean:
-	rm moves.pl strategy.pl
+	rm moves.pl wins.pl
