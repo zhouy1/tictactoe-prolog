@@ -1,0 +1,5 @@
+syntax: glob
+moves.pl
+wins.pl
+*.pyc
+*.pyo

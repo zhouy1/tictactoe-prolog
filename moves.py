@@ -1,22 +1,26 @@
-def board(x, y, z, p):
-    array=[]
-    N=['X','Y','Z','W']
-    for n in range(0,4):
-        for i in range(0,4):
-            for j in range(0,4):
-                if (z == n and x == j and y == i):
-                    array.append(p)
+def draw(x, y, z, p):
+    N=['W','Z','Y','X']
+    board=[]
+    for k in range(0,4):
+        plane=[]
+        for j in range(0,4):
+            line=[]
+            for i in range(0,4):
+                if (z == k and y == j and x == i):
+                    line.append(" " + p + " ")
                 else:
-                    array.append('%s%d%d' % (N[n],i+1,j+1))
-    return '/'.join(array)
+                    line.append('%s%d%d' % (N[k],j,i))
+            plane.append("  " + " / ".join(line))
+        board.append(" /\n".join(plane))
+    return " /\n\n".join(board)
 
 for z in range(0,4):
     for y in range(0,4):
         for x in range(0,4):
-            print 'mark('
-            print board(x,y,z,'_') + ','
-            print '%d, %d, %d, P,' % (x,y,z)
-            print board(x,y,z,'P')
-            print ').'
-            print ''
+            print "put("
+            print draw(x,y,z,"_") + ",\n"
+            print "  %d, %d, %d, P," % (x,y,z) + "\n"
+            print draw(x,y,z,"P")
+            print ")."
+            print ""
 
