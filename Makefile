@@ -1,7 +1,9 @@
-all: moves.pl wins.pl
+OBJ=moves.pl wins.pl heuristics.pl
+
+all: $(OBJ)
 
 %.pl: %.py
 	python $< > $@
 
 clean:
-	rm moves.pl wins.pl
+	rm $(OBJ)
