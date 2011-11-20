@@ -1,6 +1,11 @@
 :- module(board,
         [ empty/1,               % Gives an empty 4x4x4 board
-          print_board/1          % Prints a given board
+          print_board/1,         % Prints a given board
+          other_player/2         % Get the other player
+        ]).
+
+:- use_module(heuristics,
+        [ h_func/4
         ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,17 +43,21 @@ empty(
   0/0/0/0/
   0/0/0/0/
   0/0/0/0
-).
+) :- !.
 
-print_cell(0) :- write(' ').
-print_cell(x) :- write('X').
-print_cell(o) :- write('O').
+other_player(x,o) :- !.
+other_player(o,x) :- !.
+
+print_cell(0) :- write(' ') !.
+print_cell(x) :- write('X') !.
+print_cell(o) :- write('O') !.
 
 print_line(A, B, C, D) :-
   print_cell(A),write('/'),
   print_cell(B),write('/'),
   print_cell(C),write('/'),
-  print_cell(D),nl.
+  print_cell(D),nl
+  !.
 
 print_plane(
   E00 / E01 / E02 / E03 /
@@ -59,7 +68,8 @@ print_plane(
   print_line(E00,E01,E02,E03),
   print_line(E10,E11,E12,E13),
   print_line(E20,E21,E22,E23),
-  print_line(E30,E31,E32,E33).
+  print_line(E30,E31,E32,E33)
+  !.
 
 print_board(
   W00 / W01 / W02 / W03 /
@@ -109,5 +119,44 @@ print_board(
     X20 / X21 / X22 / X23 /
     X30 / X31 / X32 / X33
   ),
-  nl.
+  nl
+  !.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%%     Next moves
+%%%
+%%%
+%%%     Next moves have the following form
+%%%
+%%%         node(Pos,Board,Weight)
+%%%
+%%%         where Pos is the previous move
+%%%               Board is the board state after this move
+%%%               Weight is the board evaluation
+
+moves(Board, Piece, NextBoards) :-
+  moves(Board, Piece, [0,0,0], [], NextBoards) !.
+
+moves(board([_,_,_],Board,_), Piece, NextBoards) :-
+  moves(Board, Piece, [0,0,0], [], NextBoards) !.
+
+moves(Board, Piece, [4,0,0], BoardStack, BoardStack) :- !.
+
+moves(Board, Piece, CurPos, BoardStack, NextBoards) :-
+  heuristics:h_func(Board, CurPos, Piece, Weight),
+  insert(CurPos, Board, Weight, BoardStack, NewBoardStack),
+  iterate(CurPos, NextPos),
+  moves(Board, Piece, NextPos, NewBoardStack, NextBoards).
+
+insert(_, _, _, BoardStack, BoardStack) :- !.
+
+insert(Pos, Board, Weight, Tail, [node(Pos,NewBoard,Weight)|Tail]) :-
+  Weight > 0,
+  put(Board, [Z,Y,X], Piece, NewBoard).
+
+iterate([Z,Y,X], [Z1,Y1,X1]) :-
+  (X1 is (X+1) mod 4),
+  (X1 = 0 -> Y1 is (Y+1) mod 4 ; Y1 = Y),
+  (Y1 = 0 -> Z1 is Z+1 ; Z1 = Z) !.
 
