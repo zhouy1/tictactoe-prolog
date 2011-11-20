@@ -1,4 +1,4 @@
-OBJ=moves.pl wins.pl heuristics.pl
+OBJ=moves.pl heuristics.pl
 
 all: $(OBJ)
 

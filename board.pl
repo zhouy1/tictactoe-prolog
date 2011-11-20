@@ -1,3 +1,8 @@
+:- module(board,
+        [ emptyBoard/1,          % Gives an empty 4x4x4 board
+          printBoard/1           % Prints a given board
+        ]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
 %%%     Board

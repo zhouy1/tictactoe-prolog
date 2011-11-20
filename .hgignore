@@ -1,5 +1,5 @@
 syntax: glob
 moves.pl
-wins.pl
+heuristics.pl
 *.pyc
 *.pyo
