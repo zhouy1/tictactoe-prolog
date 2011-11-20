@@ -67,3 +67,23 @@ betterof(ToMove, Board1, Val1, _, Val2, Board1, Val1)  :-  % Board1 better than 
 
 betterof(_, _, _, Board2, Val2, Board2, Val2).       % Otherwise Board2 is better
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- begin_tests(minimax).
+:- use_module(board, [ empty/1, print_board/1 ]).
+:- use_module(moves, [ put/4 ]).
+
+test(should_win) :-
+  empty(Em),
+  moves:put(Em, [0,0,0], x, B1),
+  moves:put(B1, [0,1,0], x, B2),
+  moves:put(B2, [0,2,0], x, B3),
+  moves:put(B3, [1,0,0], o, B4),
+  moves:put(B4, [1,1,0], o, B5),
+  moves:put(B5, [1,2,0], o, Board),
+  minimax(Board, x, [Z,Y,X], _, 4),
+  nl, format('Move: ~d/~d/~d.', [Z,Y,X]), nl,
+  [Z,Y,X] = [0,3,0].
+
+:- end_tests(minimax).
+

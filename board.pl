@@ -9,6 +9,10 @@
         [ h_func/4
         ]).
 
+:- use_module(moves,
+        [ put/4
+        ]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
 %%%     Board
@@ -150,14 +154,43 @@ moves(Board, Piece, CurPos, BoardStack, NextBoards) :-
   iterate(CurPos, NextPos),
   moves(Board, Piece, NextPos, NewBoardStack, NextBoards).
 
-insert(_, _, _, _, BoardStack, BoardStack) :- !.
+insert(_, _, _, Weight, Tail, Tail) :-
+  Weight =< 0, !.
 
 insert(Pos, Piece, Board, Weight, Tail, [node(Pos,NewBoard,Weight)|Tail]) :-
-  Weight > 0,
-  put(Board, Pos, Piece, NewBoard).
+  put(Board, Pos, Piece, NewBoard), !.
 
 iterate([Z,Y,X], [Z1,Y1,X1]) :-
   (X1 is (X+1) mod 4),
   (X1 = 0 -> Y1 is (Y+1) mod 4 ; Y1 = Y),
-  (Y1 = 0 -> Z1 is Z+1 ; Z1 = Z), !.
+  ((X1 = 0, Y1 = 0) -> Z1 is Z+1 ; Z1 = Z), !.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+:- begin_tests(board).
+:- use_module(board, [ empty/1 ]).
+
+test(should_insert) :-
+  empty(Em),
+  moves:put(Em, [0,0,0], x, B1),
+  moves:put(B1, [0,1,0], x, B2),
+  moves:put(B2, [0,2,0], x, B3),
+  moves:put(B3, [1,0,0], o, B4),
+  moves:put(B4, [1,1,0], o, B5),
+  moves:put(B5, [1,2,0], o, Board),
+  insert([0,3,0], x, Board, 1, [], Tail),
+  Tail \= [].
+
+test(should_find_children) :-
+  empty(Em),
+  moves:put(Em, [0,0,0], x, B1),
+  moves:put(B1, [0,1,0], x, B2),
+  moves:put(B2, [0,2,0], x, B3),
+  moves:put(B3, [1,0,0], o, B4),
+  moves:put(B4, [1,1,0], o, B5),
+  moves:put(B5, [1,2,0], o, Board),
+  moves(Board, x, NextBoards),
+  NextBoards \= [].
+
+:- end_tests(board).
 
