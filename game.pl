@@ -40,21 +40,21 @@ me(x).
 play(In, Out, yes) :-
   depth(Depth), board:empty(Board), me(X),
   minimax:minimax(Board, X, Move, NextBoard, Depth),
-  send_move(Out, Move)
+  send_move(In, Out, Move),
   play(In, Out, Depth, NextBoard, X).
 
 play(In, Out, no) :-
-  depth(Depth), board:empty(Board), me(X)
-  play(In, Out, Depth, NextBoard, X).
+  depth(Depth), board:empty(Board), me(X),
+  play(In, Out, Depth, Board, X).
 
 play(In, Out, Depth, Board, Me) :-
   receive_move(In, Out, Board, OtherBoard),
   write('--- Thinking...'), nl,
   minimax(OtherBoard, Me, Move, NextBoard, Depth),
-  send_move(Out, NextBoard, Move),
+  send_move(In, Out, NextBoard, Move),
   play(In, Out, Depth, NextBoard, Me).
 
-send_move(Out, Board, [Z,Y,X]) :-
+send_move(In, Out, Board, [Z,Y,X]) :-
   format('--- My move was ~d/~d/~d.', [X,Y,Z]), nl,
   board:print_board(Board),
   write(Out, jogada(X,Y,Z)), write(Out, .), nl(Out),
@@ -64,7 +64,7 @@ send_move(Out, Board, [Z,Y,X]) :-
     Response = aceita ->
       write('--- Sent move.') ;
     Response = recusada -> fail ;
-      send_move(Out, [Z,Y,X])
+      send_move(In, Out, Board, [Z,Y,X])
   ).
 
 receive_move(In, Out, Board, OtherBoard) :-
@@ -73,8 +73,8 @@ receive_move(In, Out, Board, OtherBoard) :-
       (
         write(Out, aceita), write(Out, .), nl(Out),
         flush_output(Out),
-        format('--- Opponent\'s move was ~d/~d/~d.'), [X,Y,Z]), nl,
-        board:other_player(Me, Other),
+        format('--- Opponent\'s move was ~d/~d/~d.', [X,Y,Z]), nl,
+        me(Me), board:other_player(Me, Other),
         moves:put(Board, [Z,Y,X], Other, OtherBoard),
         board:print_board(OtherBoard)
       ) ;
