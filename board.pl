@@ -2,7 +2,7 @@
         [ empty_board/1,         % Gives an empty 4x4x4 board
           print_board/1,         % Prints a given board
           opponent/2,            % Get the opponent player
-          moves/3,               % Possible moves for a given board
+          moves/2,               % Possible moves for a given board
           me/1
         ]).
 
@@ -139,35 +139,28 @@ print_board(
 %%%         where Pos is the next possible move
 %%%               Board is the board state after this move
 
-moves(node(_,Board), Piece, NextBoards) :-
-  moves_impl(Board, Piece, NextBoards), !.
+moves(Board, Moves) :-
+  findall(Pos,
+    (bp(Pos),
+      moves:is_empty(Board, Pos)),
+    Moves).
 
-moves(Board, Piece, NextBoards) :-
-  moves_impl(Board, Piece, NextBoards), !.
-
-moves_impl(Board, Piece, NextBoards) :-
-  findall(node(Pos,NewBoard),
-    (iterate(Pos),
-      moves:is_empty(Board, Pos),
-      put(Board, Pos, Piece, NewBoard)),
-    NextBoards).
-
-iterate([0,0,0]). iterate([0,0,1]). iterate([0,0,2]). iterate([0,0,3]).
-iterate([0,1,0]). iterate([0,1,1]). iterate([0,1,2]). iterate([0,1,3]).
-iterate([0,2,0]). iterate([0,2,1]). iterate([0,2,2]). iterate([0,2,3]).
-iterate([0,3,0]). iterate([0,3,1]). iterate([0,3,2]). iterate([0,3,3]).
-iterate([1,0,0]). iterate([1,0,1]). iterate([1,0,2]). iterate([1,0,3]).
-iterate([1,1,0]). iterate([1,1,1]). iterate([1,1,2]). iterate([1,1,3]).
-iterate([1,2,0]). iterate([1,2,1]). iterate([1,2,2]). iterate([1,2,3]).
-iterate([1,3,0]). iterate([1,3,1]). iterate([1,3,2]). iterate([1,3,3]).
-iterate([2,0,0]). iterate([2,0,1]). iterate([2,0,2]). iterate([2,0,3]).
-iterate([2,1,0]). iterate([2,1,1]). iterate([2,1,2]). iterate([2,1,3]).
-iterate([2,2,0]). iterate([2,2,1]). iterate([2,2,2]). iterate([2,2,3]).
-iterate([2,3,0]). iterate([2,3,1]). iterate([2,3,2]). iterate([2,3,3]).
-iterate([3,0,0]). iterate([3,0,1]). iterate([3,0,2]). iterate([3,0,3]).
-iterate([3,1,0]). iterate([3,1,1]). iterate([3,1,2]). iterate([3,1,3]).
-iterate([3,2,0]). iterate([3,2,1]). iterate([3,2,2]). iterate([3,2,3]).
-iterate([3,3,0]). iterate([3,3,1]). iterate([3,3,2]). iterate([3,3,3]).
+bp([0,0,0]). bp([0,0,1]). bp([0,0,2]). bp([0,0,3]).
+bp([0,1,0]). bp([0,1,1]). bp([0,1,2]). bp([0,1,3]).
+bp([0,2,0]). bp([0,2,1]). bp([0,2,2]). bp([0,2,3]).
+bp([0,3,0]). bp([0,3,1]). bp([0,3,2]). bp([0,3,3]).
+bp([1,0,0]). bp([1,0,1]). bp([1,0,2]). bp([1,0,3]).
+bp([1,1,0]). bp([1,1,1]). bp([1,1,2]). bp([1,1,3]).
+bp([1,2,0]). bp([1,2,1]). bp([1,2,2]). bp([1,2,3]).
+bp([1,3,0]). bp([1,3,1]). bp([1,3,2]). bp([1,3,3]).
+bp([2,0,0]). bp([2,0,1]). bp([2,0,2]). bp([2,0,3]).
+bp([2,1,0]). bp([2,1,1]). bp([2,1,2]). bp([2,1,3]).
+bp([2,2,0]). bp([2,2,1]). bp([2,2,2]). bp([2,2,3]).
+bp([2,3,0]). bp([2,3,1]). bp([2,3,2]). bp([2,3,3]).
+bp([3,0,0]). bp([3,0,1]). bp([3,0,2]). bp([3,0,3]).
+bp([3,1,0]). bp([3,1,1]). bp([3,1,2]). bp([3,1,3]).
+bp([3,2,0]). bp([3,2,1]). bp([3,2,2]). bp([3,2,3]).
+bp([3,3,0]). bp([3,3,1]). bp([3,3,2]). bp([3,3,3]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

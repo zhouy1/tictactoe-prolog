@@ -3,7 +3,7 @@
         ]).
 
 :- use_module(board,
-        [ moves/3,
+        [ moves/2,
           opponent/2,
           empty_board/1,
           print_board/1,
@@ -30,68 +30,78 @@
 %%%
 %%%         if there is no more moves available, it fails
 
-minimax(Board, ToMove, BestMove, NextBoard, Val, Depth) :-
+minimax(Board, Player, BestMove, BestMove, BestValue, Depth) :-
   Depth > 0,
   nb_setval(branches, 0),
-  alphabeta(node(_,Board), ToMove, 0/1000000, node(BestMove,NextBoard), Val, Depth), !.
+  alphabeta(Board, Player, 0/10000000, BestMove, BestValue, Depth).
 
-alphabeta(node(Pos,Board), ToMove, _, _, Val, 0) :-
-  opponent(ToMove, Opponent),
-  heuristics:h_func(Board, Pos, ToMove, MyVal),
-  heuristics:h_func(Board, Pos, Opponent, OtherVal),
-  Val is MyVal-OtherVal, !.
+value_for(_, _, [], Val, Val).
 
-alphabeta(Board, ToMove, Bounds, GoodBoard, Val, Depth) :-
+value_for(Board, Player, [Move|TailMoves], S1, Val) :-
+  heuristics:h_func(Board, Move, Player, W),
+  S2 is S1+W,
+  value_for(Board, Player, TailMoves, S2, Val).
+
+alphabeta(Board, Player, _, _, Val, 0) :-
+  opponent(Player, Opponent),
+  board:moves(Board, Moves),
+  value_for(Board, Player, Moves, 0, MyVal),
+  value_for(Board, Opponent, Moves, 0, OpponentVal),
+  Val is MyVal-OpponentVal.
+
+alphabeta(Board, Player, Bounds, GoodMove, GoodVal, Depth) :-
+  Depth > 0,
   nb_getval(branches, N), NC is N+1, nb_setval(branches, NC),
-  board:moves(Board, ToMove, NextBoards),
+  board:moves(Board, Moves),
   OneDeeper is Depth - 1,
-  boundedbest(NextBoards, ToMove, Bounds, GoodBoard, Val, OneDeeper), !.
+  boundedbest(Board, Moves, Player, Bounds, GoodMove, GoodVal, OneDeeper).
 
-boundedbest([Board|TailBoards], ToMove, Bounds, GoodBoard, GoodVal, Depth) :-
-  opponent(ToMove, Opponent),
-  alphabeta(Board, Opponent, Bounds, _, Val, Depth),
-  goodenough(TailBoards, ToMove, Bounds, Board, Val, GoodBoard, GoodVal, Depth), !.
+boundedbest(Board, [Move|TailMoves], Player, Bounds, GoodMove, GoodVal, Depth) :-
+  moves:put(Board, Move, Player, NewBoard),
+  opponent(Player, Opponent),
+  alphabeta(NewBoard, Opponent, Bounds, _, Val, Depth),
+  goodenough(Board, TailMoves, Player, Bounds, Move, Val, GoodMove, GoodVal, Depth).
 
-goodenough([], _, _, Board, Val, Board, Val, _) :- !.    % No other candidate
+goodenough(_, [], _, _, Move, Val, Move, Val, _).    % No other candidate
 
-goodenough(_, ToMove, Alpha/Beta, Board, Val, Board, Val, _) :-
-  min_to_move(ToMove), Val > Beta, !                 % Maximizer attained upper bound
+goodenough(_, _, Player, Alpha/Beta, Move, Val, Move, Val, _) :-
+  min_to_move(Player), Val > Beta, !                 % Maximizer attained upper bound
   ;
-  max_to_move(ToMove), Val < Alpha, !.               % Minimizer attained lower bound
+  max_to_move(Player), Val < Alpha, !.               % Minimizer attained lower bound
 
-goodenough(TailBoards, ToMove, Bounds, Board, Val, GoodBoard, GoodVal, Depth)  :-
-  newbounds(Bounds, ToMove, Val, NewBounds),         % Refine bounds
-  boundedbest(TailBoards, ToMove, NewBounds, Board1, Val1, Depth),
-  betterof(Board, ToMove, Val, Board1, Val1, GoodBoard, GoodVal), !.
+goodenough(Board, TailMoves, Player, Bounds, Move, Val, GoodMove, GoodVal, Depth)  :-
+  newbounds(Bounds, Player, Val, NewBounds),         % Refine bounds
+  boundedbest(Board, TailMoves, Player, NewBounds, NewMove, NewVal, Depth),
+  betterof(Player, NewMove, NewVal, Move, Val, GoodMove, GoodVal).
 
-newbounds(Alpha/Beta, ToMove, Val, Val/Beta) :-
-  min_to_move(ToMove), Val > Alpha, !.               % Maximizer increased lower bound
+newbounds(Alpha/Beta, Player, Val, Val/Beta) :-
+  min_to_move(Player), Val > Alpha, !.               % Maximizer increased lower bound
 
-newbounds(Alpha/Beta, ToMove, Val, Alpha/Val) :-
-  max_to_move(ToMove), Val < Beta, !.                % Minimizer decreased upper bound
+newbounds(Alpha/Beta, Player, Val, Alpha/Val) :-
+  max_to_move(Player), Val < Beta, !.                % Minimizer decreased upper bound
 
-newbounds(Alpha/Beta, _, _, Alpha/Beta) :- !.        % Otherwise bounds unchanged
+newbounds(Alpha/Beta, _, _, Alpha/Beta).             % Otherwise bounds unchanged
 
-betterof(Board1, ToMove, Val1, _, Val2, Board1, Val1) :-      % Board1 better than Board2
-  min_to_move(ToMove), Val1 > Val2, !
+betterof(Player, Move1, Val1, _, Val2, Move1, Val1) :- % Board1 better than Board2
+  min_to_move(Player), Val1 > Val2, !
   ;
-  max_to_move(ToMove), Val1 < Val2, !.
+  max_to_move(Player), Val1 < Val2, !.
 
-betterof(_, _, _, Board2, Val2, Board2, Val2) :- !.  % Otherwise Board2 is better
+betterof(_, _, _, Move2, Val2, Move2, Val2).         % Otherwise Board2 is better
 
-max_to_move(X) :- me(X), !.
-min_to_move(X) :- \+ max_to_move(X), !.
+max_to_move(X) :- me(X).
+min_to_move(X) :- \+ max_to_move(X).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- begin_tests(minimax).
 :- use_module(moves, [ put/4 ]).
 
-test(first_move) :-
-  board:empty_board(Em),
-  minimax(Em, x, [Z,Y,X], _, Val, 2),
-  nb_getval(branches, N),
-  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
+%test(first_move) :-
+%  board:empty_board(Em),
+%  minimax(Em, x, [Z,Y,X], _, Val, 2),
+%  nb_getval(branches, N),
+%  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
 
 test(next_move) :-
   Board =
