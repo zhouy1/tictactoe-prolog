@@ -6,6 +6,7 @@
         [ moves/3,
           opponent/2,
           empty_board/1,
+          print_board/1,
           me/1
         ]).
 
@@ -35,7 +36,10 @@ minimax(Board, ToMove, BestMove, NextBoard, Val, Depth) :-
   alphabeta(node(_,Board), ToMove, 0/1000000, node(BestMove,NextBoard), Val, Depth), !.
 
 alphabeta(node(Pos,Board), ToMove, _, _, Val, 0) :-
-  heuristics:h_func(Board, Pos, ToMove, Val), !.
+  opponent(ToMove, Opponent),
+  heuristics:h_func(Board, Pos, ToMove, MyVal),
+  heuristics:h_func(Board, Pos, Opponent, OtherVal),
+  Val is MyVal-OtherVal, !.
 
 alphabeta(Board, ToMove, Bounds, GoodBoard, Val, Depth) :-
   nb_getval(branches, N), NC is N+1, nb_setval(branches, NC),
@@ -86,6 +90,33 @@ min_to_move(X) :- \+ max_to_move(X), !.
 test(first_move) :-
   board:empty_board(Em),
   minimax(Em, x, [Z,Y,X], _, Val, 2),
+  nb_getval(branches, N),
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
+
+test(next_move) :-
+  Board =
+    o / 0 / 0 / 0 /
+    o / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    x / x / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    x / x / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0,
+
+  minimax(Board, x, [Z,Y,X], _, Val, 2),
   nb_getval(branches, N),
   nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
 
