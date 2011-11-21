@@ -85,7 +85,7 @@ min_to_move(X) :- \+ max_to_move(X), !.
 
 test(first_move) :-
   board:empty_board(Em),
-  minimax(Em, x, [Z,Y,X], _, Val, 4),
+  minimax(Em, x, [Z,Y,X], _, Val, 2),
   nb_getval(branches, N),
   nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
 
@@ -111,7 +111,7 @@ test(win_next) :-
     x / 0 / 0 / 0 /
     0 / 0 / 0 / 0,
 
-  minimax(Board, x, [Z,Y,X], _, Val, 3),
+  minimax(Board, x, [Z,Y,X], _, Val, 2),
   nb_getval(branches, N),
   nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl,
   [Z,Y,X] = [0,3,0].
