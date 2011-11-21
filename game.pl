@@ -7,8 +7,8 @@
         ]).
 
 :- use_module(board,
-        [ empty/1,
-          other_player/2,
+        [ empty_board/1,
+          opponent/2,
           print_board/1
         ]).
 
@@ -22,29 +22,28 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
-%%%     Socket interface to 4x4x4 Tic-Tac-Toe client player
+%%%     Game play
 %%%
 %%%
-%%%     The create_client/3 function starts the client interface.
+%%%     The play/3 function runs the I/O interaction.
 %%%
-%%%         create_client(+Host, +Port, +Initiate)
+%%%         play(+In, +Out, +Initiate)
 %%%
-%%%         where Host is the server host
-%%%               Port is the server port
+%%%         where In is the input descriptor
+%%%               Out is the output descriptor
 %%%               Initiate should be yes or no, and indicates if
-%%%                        this player should initiate the play.
+%%%                        it should initiate the game.
 
 depth(4).
-me(x).
 
 play(In, Out, yes) :-
-  depth(Depth), board:empty(Board), me(X),
+  depth(Depth), board:empty_board(Board), me(X),
   minimax:minimax(Board, X, Move, NextBoard, Depth),
   send_move(In, Out, Move),
   play(In, Out, Depth, NextBoard, X).
 
 play(In, Out, no) :-
-  depth(Depth), board:empty(Board), me(X),
+  depth(Depth), board:empty_board(Board), me(X),
   play(In, Out, Depth, Board, X).
 
 play(In, Out, Depth, Board, Me) :-
@@ -74,7 +73,7 @@ receive_move(In, Out, Board, OtherBoard) :-
         write(Out, aceita), write(Out, .), nl(Out),
         flush_output(Out),
         format('--- Opponent\'s move was ~d/~d/~d.', [X,Y,Z]), nl,
-        me(Me), board:other_player(Me, Other),
+        me(Me), board:opponent(Me, Other),
         moves:put(Board, [Z,Y,X], Other, OtherBoard),
         board:print_board(OtherBoard)
       ) ;
@@ -91,7 +90,7 @@ is_valid(Board, [Z,Y,X]) :-
   Y >= 0, Y =< 3,
   Z >= 0, Z =< 3,
   % the position should be empty
-  me(Me), board:other_player(Me, Other),
+  me(Me), board:opponent(Me, Other),
   heuristics:h_func(Board, [Z,Y,X], Other, W),
   W > 0.
 

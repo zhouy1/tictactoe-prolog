@@ -140,7 +140,7 @@ def intercepts(wins, piece):
 def merge((z,y,x), boards):
 	i='A'
 	m=dict()
-	m[(z,y,x)]='X '
+	m[(z,y,x)]='_X'
 	for board in boards:
 		j=0
 		for piece in board:
@@ -155,26 +155,22 @@ def print_h((z,y,x), intercepts, board, weight):
 	print str(Board(board)) + ','
 	print '  [%d, %d, %d], Piece, W) :- ' % (z,y,x)
 	print ''
-	print '  (X = 0 ->'
-	print '  ('
 
 	i=0
 	t=[]
 	v=[]
 	for piece in sorted(board.values()):
-		if piece == 'X ': break
+		if piece == '_X': break
 		v.append(piece)
 		i+=1
 		if (i % 3) == 0:
 			var='W%d' % (i/3)
 			t.append(var)
-			print '    weight(' + ','.join(v) + ',Piece,%s),' % var
+			print '  weight(' + ','.join(v) + ',Piece,%s),' % var
 			v=[]
 
-	print '    % W(Board,Position) = Intercepts(Position) + Sum(H(Board,Position))'
-	print '    W is %d+' % weight + '+'.join(t)
-	print '  )'
-	print '  ; W = 0), !.'
+	print '  % W(Board,Position) = Intercepts(Position) + Sum(H(Board,Position))'
+	print '  W is %d+' % weight + '+'.join(t) + ', !.'
 	print ''
 
 def heuristics():

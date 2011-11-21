@@ -1,16 +1,14 @@
 :- module(board,
-        [ empty/1,               % Gives an empty 4x4x4 board
+        [ empty_board/1,         % Gives an empty 4x4x4 board
           print_board/1,         % Prints a given board
-          other_player/2,        % Get the other player
-          moves/3                % Possible moves for a given board
-        ]).
-
-:- use_module(heuristics,
-        [ h_func/4
+          opponent/2,            % Get the opponent player
+          moves/3,               % Possible moves for a given board
+          me/1
         ]).
 
 :- use_module(moves,
-        [ put/4
+        [ put/4,
+          is_empty/2
         ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,7 +26,9 @@
 %%%               x means my move
 %%%               o means opponent move
 
-empty(
+me(x).
+
+empty_board(
   0/0/0/0/
   0/0/0/0/
   0/0/0/0/
@@ -50,8 +50,8 @@ empty(
   0/0/0/0
 ) :- !.
 
-other_player(x,o) :- !.
-other_player(o,x) :- !.
+opponent(x,o) :- !.
+opponent(o,x) :- !.
 
 print_cell(0) :- write(' '), !.
 print_cell(x) :- write('X'), !.
@@ -134,31 +134,28 @@ print_board(
 %%%
 %%%     Next moves have the following form
 %%%
-%%%         node(Pos,Board,Weight)
+%%%         node(Pos,Board)
 %%%
-%%%         where Pos is the previous move
+%%%         where Pos is the next possible move
 %%%               Board is the board state after this move
-%%%               Weight is the board evaluation
+
+moves(node(_,Board), Piece, NextBoards) :-
+  moves_impl(Board, Piece, [0,0,0], [], NextBoards), !.
 
 moves(Board, Piece, NextBoards) :-
-  moves(Board, Piece, [0,0,0], [], NextBoards), !.
+  moves_impl(Board, Piece, [0,0,0], [], NextBoards), !.
 
-moves(board([_,_,_],Board,_), Piece, NextBoards) :-
-  moves(Board, Piece, [0,0,0], [], NextBoards), !.
+moves_impl(_, _, [4,0,0], BoardStack, BoardStack) :- !.
 
-moves(_, _, [4,0,0], BoardStack, BoardStack) :- !.
-
-moves(Board, Piece, CurPos, BoardStack, NextBoards) :-
-  heuristics:h_func(Board, CurPos, Piece, Weight),
-  insert(CurPos, Piece, Board, Weight, BoardStack, NewBoardStack),
+moves_impl(Board, Piece, CurPos, BoardStack, NextBoards) :-
+  insert(CurPos, Piece, Board, BoardStack, NewBoardStack),
   iterate(CurPos, NextPos),
-  moves(Board, Piece, NextPos, NewBoardStack, NextBoards).
+  moves_impl(Board, Piece, NextPos, NewBoardStack, NextBoards), !.
 
-insert(_, _, _, Weight, Tail, Tail) :-
-  Weight =< 0, !.
+insert(Pos, Piece, Board, Tail, [node(Pos,NewBoard)|Tail]) :-
+  moves:is_empty(Board, Pos), put(Board, Pos, Piece, NewBoard), !.
 
-insert(Pos, Piece, Board, Weight, Tail, [node(Pos,NewBoard,Weight)|Tail]) :-
-  put(Board, Pos, Piece, NewBoard), !.
+insert(_, _, _, Tail, Tail) :- !.
 
 iterate([Z,Y,X], [Z1,Y1,X1]) :-
   (X1 is (X+1) mod 4),
@@ -168,21 +165,20 @@ iterate([Z,Y,X], [Z1,Y1,X1]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- begin_tests(board).
-:- use_module(board, [ empty/1 ]).
 
 test(should_insert) :-
-  empty(Em),
+  empty_board(Em),
   moves:put(Em, [0,0,0], x, B1),
   moves:put(B1, [0,1,0], x, B2),
   moves:put(B2, [0,2,0], x, B3),
   moves:put(B3, [1,0,0], o, B4),
   moves:put(B4, [1,1,0], o, B5),
   moves:put(B5, [1,2,0], o, Board),
-  insert([0,3,0], x, Board, 1, [], Tail),
+  insert([0,3,0], x, Board, [], Tail),
   Tail \= [].
 
 test(should_find_children) :-
-  empty(Em),
+  empty_board(Em),
   moves:put(Em, [0,0,0], x, B1),
   moves:put(B1, [0,1,0], x, B2),
   moves:put(B2, [0,2,0], x, B3),
