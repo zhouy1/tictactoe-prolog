@@ -31,12 +31,14 @@
 
 minimax(Board, ToMove, BestMove, NextBoard, Val, Depth) :-
   Depth > 0,
+  nb_setval(branches, 0),
   alphabeta(node(_,Board), ToMove, 0/1000000, node(BestMove,NextBoard), Val, Depth), !.
 
 alphabeta(node(Pos,Board), ToMove, _, _, Val, 0) :-
   heuristics:h_func(Board, Pos, ToMove, Val), !.
 
 alphabeta(Board, ToMove, Bounds, GoodBoard, Val, Depth) :-
+  nb_getval(branches, N), NC is N+1, nb_setval(branches, NC),
   board:moves(Board, ToMove, NextBoards),
   OneDeeper is Depth - 1,
   boundedbest(NextBoards, ToMove, Bounds, GoodBoard, Val, OneDeeper), !.
@@ -54,19 +56,19 @@ goodenough(_, ToMove, Alpha/Beta, Board, Val, Board, Val, _) :-
   max_to_move(ToMove), Val < Alpha, !.               % Minimizer attained lower bound
 
 goodenough(TailBoards, ToMove, Bounds, Board, Val, GoodBoard, GoodVal, Depth)  :-
-  newbounds(Bounds, ToMove, Val, NewBounds),         % Refine bounds  
+  newbounds(Bounds, ToMove, Val, NewBounds),         % Refine bounds
   boundedbest(TailBoards, ToMove, NewBounds, Board1, Val1, Depth),
   betterof(Board, ToMove, Val, Board1, Val1, GoodBoard, GoodVal), !.
 
 newbounds(Alpha/Beta, ToMove, Val, Val/Beta) :-
-  min_to_move(ToMove), Val > Alpha, !.               % Maximizer increased lower bound 
+  min_to_move(ToMove), Val > Alpha, !.               % Maximizer increased lower bound
 
 newbounds(Alpha/Beta, ToMove, Val, Alpha/Val) :-
-  max_to_move(ToMove), Val < Beta, !.                % Minimizer decreased upper bound 
+  max_to_move(ToMove), Val < Beta, !.                % Minimizer decreased upper bound
 
-newbounds(Alpha/Beta, _, _, Alpha/Beta) :- !.        % Otherwise bounds unchanged 
+newbounds(Alpha/Beta, _, _, Alpha/Beta) :- !.        % Otherwise bounds unchanged
 
-betterof(Board1, ToMove, Val1, _, Val2, Board1, Val1) :-      % Board1 better than Board2 
+betterof(Board1, ToMove, Val1, _, Val2, Board1, Val1) :-      % Board1 better than Board2
   min_to_move(ToMove), Val1 > Val2, !
   ;
   max_to_move(ToMove), Val1 < Val2, !.
@@ -83,33 +85,35 @@ min_to_move(X) :- \+ max_to_move(X), !.
 
 test(first_move) :-
   board:empty_board(Em),
-  minimax(Em, x, [Z,Y,X], _, Val, 2),
-  nl, format('Move: ~d/~d/~d, Val = ~d.', [Z,Y,X,Val]), nl.
+  minimax(Em, x, [Z,Y,X], _, Val, 4),
+  nb_getval(branches, N),
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl.
 
 test(win_next) :-
   Board =
-    0/0/0/0/
-    0/0/0/0/
-    0/0/0/0/
-    0/0/0/0/
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
 
-    0/0/0/0/
-    0/0/0/0/
-    0/0/0/0/
-    0/0/0/0/
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
 
-    o/0/0/0/
-    o/0/0/0/
-    o/0/0/0/
-    0/0/0/0/
+    o / 0 / 0 / 0 /
+    o / 0 / 0 / 0 /
+    o / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
 
-    x/0/0/0/
-    x/0/0/0/
-    x/0/0/0/
-    0/0/0/0,
+    x / 0 / 0 / 0 /
+    x / 0 / 0 / 0 /
+    x / 0 / 0 / 0 /
+    0 / 0 / 0 / 0,
 
-  minimax(Board, x, [Z,Y,X], _, Val, 2),
-  nl, format('Move: ~d/~d/~d, Val = ~d.', [Z,Y,X,Val]), nl,
+  minimax(Board, x, [Z,Y,X], _, Val, 3),
+  nb_getval(branches, N),
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl,
   [Z,Y,X] = [0,3,0].
 
 :- end_tests(minimax).

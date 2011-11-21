@@ -140,27 +140,34 @@ print_board(
 %%%               Board is the board state after this move
 
 moves(node(_,Board), Piece, NextBoards) :-
-  moves_impl(Board, Piece, [0,0,0], [], NextBoards), !.
+  moves_impl(Board, Piece, NextBoards), !.
 
 moves(Board, Piece, NextBoards) :-
-  moves_impl(Board, Piece, [0,0,0], [], NextBoards), !.
+  moves_impl(Board, Piece, NextBoards), !.
 
-moves_impl(_, _, [4,0,0], BoardStack, BoardStack) :- !.
+moves_impl(Board, Piece, NextBoards) :-
+  findall(node(Pos,NewBoard),
+    (iterate(Pos),
+      moves:is_empty(Board, Pos),
+      put(Board, Pos, Piece, NewBoard)),
+    NextBoards).
 
-moves_impl(Board, Piece, CurPos, BoardStack, NextBoards) :-
-  insert(CurPos, Piece, Board, BoardStack, NewBoardStack),
-  iterate(CurPos, NextPos),
-  moves_impl(Board, Piece, NextPos, NewBoardStack, NextBoards), !.
-
-insert(Pos, Piece, Board, Tail, [node(Pos,NewBoard)|Tail]) :-
-  moves:is_empty(Board, Pos), put(Board, Pos, Piece, NewBoard), !.
-
-insert(_, _, _, Tail, Tail) :- !.
-
-iterate([Z,Y,X], [Z1,Y1,X1]) :-
-  (X1 is (X+1) mod 4),
-  (X1 = 0 -> Y1 is (Y+1) mod 4 ; Y1 = Y),
-  ((X1 = 0, Y1 = 0) -> Z1 is Z+1 ; Z1 = Z), !.
+iterate([0,0,0]). iterate([0,0,1]). iterate([0,0,2]). iterate([0,0,3]).
+iterate([0,1,0]). iterate([0,1,1]). iterate([0,1,2]). iterate([0,1,3]).
+iterate([0,2,0]). iterate([0,2,1]). iterate([0,2,2]). iterate([0,2,3]).
+iterate([0,3,0]). iterate([0,3,1]). iterate([0,3,2]). iterate([0,3,3]).
+iterate([1,0,0]). iterate([1,0,1]). iterate([1,0,2]). iterate([1,0,3]).
+iterate([1,1,0]). iterate([1,1,1]). iterate([1,1,2]). iterate([1,1,3]).
+iterate([1,2,0]). iterate([1,2,1]). iterate([1,2,2]). iterate([1,2,3]).
+iterate([1,3,0]). iterate([1,3,1]). iterate([1,3,2]). iterate([1,3,3]).
+iterate([2,0,0]). iterate([2,0,1]). iterate([2,0,2]). iterate([2,0,3]).
+iterate([2,1,0]). iterate([2,1,1]). iterate([2,1,2]). iterate([2,1,3]).
+iterate([2,2,0]). iterate([2,2,1]). iterate([2,2,2]). iterate([2,2,3]).
+iterate([2,3,0]). iterate([2,3,1]). iterate([2,3,2]). iterate([2,3,3]).
+iterate([3,0,0]). iterate([3,0,1]). iterate([3,0,2]). iterate([3,0,3]).
+iterate([3,1,0]). iterate([3,1,1]). iterate([3,1,2]). iterate([3,1,3]).
+iterate([3,2,0]). iterate([3,2,1]). iterate([3,2,2]). iterate([3,2,3]).
+iterate([3,3,0]). iterate([3,3,1]). iterate([3,3,2]). iterate([3,3,3]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
