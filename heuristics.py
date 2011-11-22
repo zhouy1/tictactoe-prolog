@@ -1,6 +1,7 @@
 print ':- module(heuristics,'
-print '        [ h_func/4               % The heuristic function for each'
-print '        ]).                      % position of the board.'
+print '        [ h_func/3,              % The heuristic function / pos'
+print '          crosses/2              % The number of crosses / pos'
+print '        ]).'
 print ''
 print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 print '%%%'
@@ -10,39 +11,42 @@ print '%%%'
 print '%%%     The h_func calculates the heuristics function for a'
 print '%%%     given position of the board.'
 print '%%%'
-print '%%%         h_func(+Board, +[Z,Y,X], +Piece, -Weight)'
+print '%%%         h_func(+Board, +Player, -Weight)'
 print '%%%'
 print '%%%         where Board is the current board state'
-print '%%%               [Z,Y,X] is the board position'
-print '%%%               Piece is the piece of current player (x/o)'
+print '%%%               Player is the piece of current player (x/o)'
 print '%%%               Weight is the heuristic value'
 print ''
-print 'not_opponent(A,B,C,x) :-'
+print 'not_opponent(A,B,C,D,x) :-'
 print '  (A = x; A = 0),'
 print '  (B = x; B = 0),'
-print '  (C = x; C = 0).'
+print '  (C = x; C = 0),'
+print '  (D = x; D = 0).'
 print ''
-print 'not_opponent(A,B,C,o) :-'
+print 'not_opponent(A,B,C,D,o) :-'
 print '  (A = o; A = 0),'
 print '  (B = o; B = 0),'
-print '  (C = o; C = 0).'
+print '  (C = o; C = 0),'
+print '  (D = o; D = 0).'
 print ''
 print 'found(0,0) :- !.'
 print 'found(_,1) :- !.'
 print ''
 print 'w(0,0) :- !.      % no pieces, then 0'
-print 'w(1,10) :- !.     % one piece, then 10'
-print 'w(2,100) :- !.    % two pieces, then 100'
-print 'w(3,1000) :- !.   % three pieces, then 1000'
+print 'w(1,100) :- !.    % one piece, then 100'
+print 'w(2,1000) :- !.   % two pieces, then 1000'
+print 'w(3,10000) :- !.  % three pieces, then 10000'
+print 'w(4,100000) :- !. % four pieces, then 100000'
 print ''
-print 'weight(A,B,C,Piece,W) :-'
+print 'weight(A,B,C,D,Player,W) :-'
 print '  ('
-print '    not_opponent(A,B,C,Piece) ->'
+print '    not_opponent(A,B,C,D,Player) ->'
 print '    ('
 print '      found(A,W1),'
 print '      found(B,W2),'
 print '      found(C,W3),'
-print '      S is W1+W2+W3,'
+print '      found(D,W4),'
+print '      S is W1+W2+W3+W4,'
 print '      w(S,W)'
 print '    ) ;'
 print '    W = 0'
@@ -57,16 +61,14 @@ class Board:
 		return " /\n\n".join([" /\n".join(["  " + "/".join(line) for line in plane]) for plane in self.board()])
 
 	def board(self):
+		N=['W','Z','Y','X']
 		pieces=[]
 		for k in range(0,4):
 			plane=[]
 			for j in range(0,4):
 				line=[]
 				for i in range(0,4):
-					if (k,j,i) in self.pieces.keys():
-						line.append(self.pieces[(k,j,i)])
-					else:
-						line.append("_ ")
+					line.append('%s%d%d' % (N[k],j,i))
 				plane.append(line)
 			pieces.append(plane)
 		pieces.reverse()
@@ -150,38 +152,53 @@ def merge((z,y,x), boards):
 		i=chr(ord(i) + 1)
 	return m
 
-def print_h((z,y,x), intercepts, board, weight):
-	print 'h_func('
-	print str(Board(board)) + ','
-	print '  [%d, %d, %d], Piece, W) :- ' % (z,y,x)
-	print ''
+def single_merge(board):
+	i='A'
+	m=dict()
+	for piece in board:
+		m[piece]='%s' % i
+		i=chr(ord(i) + 1)
+	return m
 
-	i=0
-	t=[]
-	v=[]
-	for piece in sorted(board.values()):
-		if piece == '_X': break
-		v.append(piece)
-		i+=1
-		if (i % 3) == 0:
-			var='W%d' % (i/3)
-			t.append(var)
-			print '  weight(' + ','.join(v) + ',Piece,%s),' % var
-			v=[]
+def print_h(board, i):
+	line=[]
+	for (z,y,x) in board.keys():
+		N=['W','Z','Y','X']
+		line.append('%s%d%d' % (N[z],y,x))
 
-	print '  % W(Board,Position) = Intercepts(Position) + Sum(H(Board,Position))'
-	print '  W is %d+' % weight + '+'.join(t) + ', !.'
-	print ''
+	print '  weight(' + ','.join(line) + ',Player,S%d),' % i
+
+def print_crosses((z,y,x), weight):
+	print 'crosses([%d, %d, %d], %d).' % (z,y,x,weight)
 
 def heuristics():
 	w=wins()
+
+	print 'h_func('
+	print str(Board()) + ','
+	print '  Player, W) :- '
+	print ''
+
+	i = 1
+	for board in w:
+		M=single_merge(board)
+		print_h(M, i)
+		i += 1
+
+	l=[]
+	for j in range(0,i-1):
+		l.append('S%d' % (j+1))
+
+	print '  W is ' + '+'.join(l) + '.'
+	print ''
 
 	for z in range(0,4):
 		for y in range(0,4):
 			for x in range(0,4):
 				I=intercepts(w, (z,y,x))
 				M=merge((z,y,x),I)
-				print_h((z,y,x),I,M,len(I))
+				print_crosses((z,y,x),len(I))
+	print ''
 
 heuristics()
 
