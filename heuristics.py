@@ -1,6 +1,13 @@
 print ':- module(heuristics,'
-print '        [ h_func/3,              % The heuristic function / pos'
-print '          crosses/2              % The number of crosses / pos'
+print '        [ first_move/2,          % The heuristic for first move'
+print '          value/3                % The heuristic for board state'
+print '        ]).'
+print ''
+print ':- use_module(board,'
+print '        [ me/1,'
+print '          opponent/2,'
+print '          empty_board/1,'
+print '          moves/2'
 print '        ]).'
 print ''
 print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
@@ -189,7 +196,7 @@ def heuristics():
 	for j in range(0,i-1):
 		l.append('S%d' % (j+1))
 
-	print '  W is ' + '+'.join(l) + '.'
+	print '  W is ' + '+'.join(l) + ', !.'
 	print ''
 
 	for z in range(0,4):
@@ -201,4 +208,37 @@ def heuristics():
 	print ''
 
 heuristics()
+
+print 'first_move(BestMove, BestValue) :-'
+print '  board:empty_board(E),'
+print '  board:moves(E, Moves),'
+print '  first_move(Moves, nil/0, BestMove/BestValue), !.'
+print ''
+print 'first_move([], Move/Val, Move/Val) :- !.'
+print ''
+print 'first_move([Move|TailMoves], SelMove/Val, BestMove/BestValue) :-'
+print '  random(1,1000, R),'
+print '  ((crosses(Move, X), X = 7) ->'
+print '    (Score is 1000 + R) ; (Score is 100 + R)),'
+print '  first_move(Move/Score, SelMove/Val, SelMove1/Val1),'
+print '  first_move(TailMoves, SelMove1/Val1, BestMove/BestValue), !.'
+print ''
+print 'first_move(_/Val1, Move2/Val2, Move2/Val2) :-'
+print '  Val2 > Val1, !.'
+print ''
+print 'first_move(Move1/Val1, _, Move1/Val1) :- !.'
+print ''
+print 'value(Board, Player, Val) :-'
+print '  board:me(Me),'
+print '  board:opponent(Me, Opponent),'
+print '  h_func(Board, Me, W1),'
+print '  h_func(Board, Opponent, W2),'
+print '  scoreof(W1, W2, Player, Val), !.'
+print ''
+print 'scoreof(W1, W2, Player, Val) :-'
+print '  board:me(Player), Val is W1-W2, !.'
+print ''
+print 'scoreof(W1, W2, _, Val) :-'
+print '  Val is W2-W1, !.'
+print ''
 

@@ -3,7 +3,9 @@
           print_board/1,         % Prints a given board
           opponent/2,            % Get the opponent player
           moves/2,               % Possible moves for a given board
-          me/1
+          me/1,                  % Get my player
+          put/4,                 % Put a piece on the board
+          is_empty/2             % Check if a position is empty
         ]).
 
 :- use_module(moves,
@@ -161,32 +163,4 @@ bp([2,3,1]). bp([3,0,2]). bp([2,0,2]). bp([1,0,1]).
 bp([2,3,0]). bp([0,1,3]). bp([3,2,2]). bp([0,0,2]).
 bp([0,0,1]). bp([0,2,3]). bp([2,1,3]). bp([3,3,2]).
 bp([3,2,1]). bp([3,1,3]). bp([0,1,2]). bp([2,0,1]).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-:- begin_tests(board).
-
-test(should_insert) :-
-  empty_board(Em),
-  moves:put(Em, [0,0,0], x, B1),
-  moves:put(B1, [0,1,0], x, B2),
-  moves:put(B2, [0,2,0], x, B3),
-  moves:put(B3, [1,0,0], o, B4),
-  moves:put(B4, [1,1,0], o, B5),
-  moves:put(B5, [1,2,0], o, Board),
-  insert([0,3,0], x, Board, [], Tail),
-  Tail \= [].
-
-test(should_find_children) :-
-  empty_board(Em),
-  moves:put(Em, [0,0,0], x, B1),
-  moves:put(B1, [0,1,0], x, B2),
-  moves:put(B2, [0,2,0], x, B3),
-  moves:put(B3, [1,0,0], o, B4),
-  moves:put(B4, [1,1,0], o, B5),
-  moves:put(B5, [1,2,0], o, Board),
-  moves(Board, x, NextBoards),
-  NextBoards \= [].
-
-:- end_tests(board).
 
