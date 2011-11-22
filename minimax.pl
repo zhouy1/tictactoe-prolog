@@ -207,10 +207,64 @@ test(third_move) :-
     0 / 0 / 0 / 0 /
     0 / 0 / 0 / 0,
 
-  minimax(Board, x, [Z,Y,X], Val, 3),
+  minimax(Board, x, [Z,Y,X], Val, 2),
   nb_getval(branches, N),
   nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl,
   ([Z,Y,X] = [0,2,0] ; [Z,Y,X] = [0,3,0]).
+
+test(block_fork) :-
+  Board =
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    o / 0 / 0 / 0 /
+    x / o / 0 / 0 /
+    o / 0 / 0 / o /
+    0 / 0 / 0 / 0 /
+
+    0 / x / 0 / 0 /
+    x / x / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0,
+
+  minimax(Board, x, [Z,Y,X], Val, 2),
+  nb_getval(branches, N),
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl,
+  ([Z,Y,X] = [1,2,2]).
+
+test(fork) :-
+  Board =
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0 /
+
+    x / 0 / 0 / 0 /
+    o / x / 0 / 0 /
+    x / 0 / 0 / x /
+    0 / 0 / 0 / 0 /
+
+    0 / o / 0 / 0 /
+    o / o / 0 / 0 /
+    0 / 0 / 0 / 0 /
+    0 / 0 / 0 / 0,
+
+  minimax(Board, x, [Z,Y,X], Val, 2),
+  nb_getval(branches, N),
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d.', [Z,Y,X,Val,N]), nl,
+  ([Z,Y,X] = [1,2,2]).
 
 :- end_tests(minimax).
 
