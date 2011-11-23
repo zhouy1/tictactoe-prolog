@@ -61,6 +61,7 @@ print_cells([H|T]) :-
 print_lines([]).
 
 print_lines([Line|Tail]) :-
+  write('    '),
   print_cells(Line),
   print_lines(Tail).
 
@@ -71,6 +72,7 @@ print_planes([Plane]) :-
 print_planes([Plane|Tail]) :-
   group(Plane, 4, Lines),
   print_lines(Lines),
+  write('    '),
   write('-------'),nl,
   print_planes(Tail).
 
@@ -131,14 +133,14 @@ bp([2,3,0]). bp([0,1,3]). bp([3,2,2]). bp([0,0,2]).
 bp([0,0,1]). bp([0,2,3]). bp([2,1,3]). bp([3,3,2]).
 bp([3,2,1]). bp([3,1,3]). bp([0,1,2]). bp([2,0,1]).
 
-stackpos([Z,Y,X], N) :-
-  N is Z * 16 + Y * 4 + X.
+stackpos([Z,Y,X],N) :-
+  N is Z*16 + Y*4 + X.
 
-put(Board, Pos, P, NewBoard) :-
-  stack(Board, Stack),
-  stackpos(Pos, R),
-  insert_at(P, Stack, R, NewStack),
-  stack(NewBoard, NewStack).
+put(Board,Pos,P,NewBoard) :-
+  stack(Board,Stack),
+  stackpos(Pos,R),
+  insert_at(P,Stack,R,NewStack),
+  stack(NewBoard,NewStack).
 
 insert_at(X,[_|Xs],0,[X|Xs]).
 
@@ -148,14 +150,10 @@ insert_at(X,[Y|Xs],K,[Y|Ys]) :-
   insert_at(X,Xs,K1,Ys).
 
 is_empty(Board, Pos) :-
-  stack(Board, Stack),
-  stackpos(Pos, R),
-  element_at(X, Stack, R), X = 0.
+  stack(Board,Stack),
+  stackpos(Pos,R),
+  element_at(X,Stack,R), X = 0.
 
-element_at(X,[X|_],0).
-
-element_at(X,[_|L],K) :-
-  K > 0,
-  K1 is K - 1,
-  element_at(X,L,K1).
+element_at(X,L,K) :-
+  insert_at(X,_,K,L).
 

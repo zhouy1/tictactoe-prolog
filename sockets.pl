@@ -4,7 +4,7 @@
         ]).
 
 :- use_module(game,
-        [ play/3
+        [ go/2
         ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -21,23 +21,32 @@
 %%%                        this player should initiate the game.
 
 create_server(Port, Initiate) :-
-  tcp_socket(Socket),
-  tcp_bind(Socket, Port), 
-  tcp_listen(Socket, 5),
-  tcp_open_socket(Socket, AcceptFd, _),
-  write('Waiting for connection...'), nl,
-  tcp_accept(AcceptFd, Socket, Peer),
-  setup_call_cleanup(tcp_open_socket(Socket, In, Out),
-                     handle_service(Initiate, Peer, In, Out),
-                     close_connection(In, Out)).
+  setup_call_cleanup(
+    true,
+    (
+      tcp_socket(Socket),
+      tcp_bind(Socket, Port), 
+      tcp_listen(Socket, 5),
+      tcp_open_socket(Socket, AcceptFd, _),
+      write('--- Waiting for connection...'), nl,
+      tcp_accept(AcceptFd, Socket2, Peer)
+    ),
+    tcp_close_socket(AcceptFd)
+  ),
+  setup_call_cleanup(
+    tcp_open_socket(Socket2, In, Out),
+    handle_service(Initiate, Peer, In, Out),
+    close_connection(In, Out)
+  ).
 
 close_connection(In, Out) :-
   close(In, [force(true)]),
   close(Out, [force(true)]).
 
 handle_service(Initiate, Peer, In, Out) :-
-  format('Received connection from ~a.\n', [Peer]),
-  game:play(In, Out, Initiate).
+  ip(X1,X2,X3,X4) = Peer,
+  format('--- Received connection from ~d.~d.~d.~d\n', [X1,X2,X3,X4]),
+  game:go(In/Out, Initiate).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
@@ -54,13 +63,20 @@ handle_service(Initiate, Peer, In, Out) :-
 %%%                        this player should initiate the game.
 
 create_client(Host, Port, Initiate) :-
-  setup_call_catcher_cleanup(tcp_socket(Socket),
-                             format('Connecting to ~s:~d...', [Host,Port]), nl,
-                             tcp_connect(Socket, Host:Port),
-                             exception(_),
-                             tcp_close_socket(Socket)),
-  setup_call_cleanup(tcp_open_socket(Socket, In, Out),
-                     write('Connected!'), nl,
-                     game:play(In, Out, Initiate),
-                     close_connection(In, Out)).
+  setup_call_catcher_cleanup(
+    tcp_socket(Socket),
+    (
+      format('--- Connecting to ~s:~d...', [Host,Port]), nl,
+      tcp_connect(Socket, Host:Port)),
+      exception(_),
+      tcp_close_socket(Socket)
+    ),
+  setup_call_cleanup(
+    tcp_open_socket(Socket, In, Out),
+    (
+      write('--- Connected!'), nl,
+      game:go(In/Out, Initiate)
+    ),
+    close_connection(In, Out)
+  ).
 

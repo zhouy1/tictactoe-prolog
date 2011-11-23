@@ -1,5 +1,5 @@
 :- module(game,
-        [ game/2,                % the game engine
+        [ go/2,                  % the game engine
           play/5                 % The 4x4x4 tic-tac-toe computer player
         ]).
 
@@ -12,6 +12,10 @@
           opponent/1,
           print_board/1,
           put/4
+        ]).
+
+:- use_module(heuristics,
+        [ win/2
         ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,57 +32,66 @@
 %%%               Initiate should be yes or no, and indicates if
 %%%                        it should initiate the game.
 
-game(In/Out, no) :-
+go(I/O, no) :-
   board:empty_board(Board),
-  turn(In/Out, Board), !.
+  opponent_turn(I/O, Board), !.
 
-game(In/Out, yes) :-
+go(I/O, yes) :-
   board:empty_board(Board),
   write('--- Yew! Initiating the game!'), nl,
-  my_move(In/Out, Board, MyBoard),
-  turn(In/Out, MyBoard), !.
+  my_turn(I/O, Board), !.
 
-turn(In/Out, Board) :-
-  opponent_move(In/Out, Board, OpponentBoard),
-  opponent_wins(Board) ->
+opponent_turn(I/O, Board) :-
+  opponent_move(I/O, Board, OpponentBoard),
   (
-    write('<<< I loose!'), nl
-  ) ;
+    opponent_wins(OpponentBoard),
+    write('<<< I loose. :('), nl
+    ;
+    draw(OpponentBoard),
+    write('<<< Draw...'), nl
+    ;
+    my_turn(I/O, OpponentBoard)
+  ), !.
+
+my_turn(I/O, Board) :-
+  my_move(I/O, Board, MyBoard),
   (
-    my_move(In/Out, OpponentBoard, MyBoard),
-    i_win(MyBoard) ->
-    (
-      write('<<< I win!'), nl
-    ) ;
-    (
-      turn(In/Out, MyBoard)
-    )
+    i_win(MyBoard),
+    write('<<< I win!'), nl
+    ;
+    draw(MyBoard),
+    write('<<< Draw...'), nl
+    ;
+    opponent_turn(I/O, MyBoard)
   ), !.
 
 i_win(Board) :-
-  board:me(X), win(Board, X).
+  board:me(X), heuristics:win(Board, X).
 
 opponent_wins(Board) :-
   board:opponent(X), win(Board, X).
 
-my_move(In/Out, Board, MyBoard) :-
+draw(Board) :-
+  board:moves(Board,[]).
+
+my_move(I/O, Board, MyBoard) :-
   write('--- Thinking...'), nl,
   play(Board, MyMove, _, _, _),
   [X,Y,Z] = MyMove,
   format('--- My move: ~d/~d/~d', [X,Y,Z]), nl,
   board:me(Me),
   board:put(Board, MyMove, Me, MyBoard),
-  board:print_board(MyBoard),
-  send_move(In/Out, MyMove), !.
+  nl,board:print_board(MyBoard),
+  send_move(I/O, MyMove), !.
 
-opponent_move(In/Out, Board, OpponentBoard) :-
+opponent_move(I/O, Board, OpponentBoard) :-
   write('--- Waiting for opponent move...'), nl,
-  receive_move(In, Out, Board, OpponentMove),
+  receive_move(I/O, Board, OpponentMove),
   [Z,Y,X] = OpponentMove,
   format('--- Opponent move: ~d,~d,~d', [Z,Y,X]), nl,
   board:opponent(Opponent),
   board:put(Board, OpponentMove, Opponent, OpponentBoard),
-  board:print_board(OpponentBoard), !.
+  nl,board:print_board(OpponentBoard), !.
 
 play(Board, Move, Val, 0, 0) :-
   board:empty_board(Board),
@@ -132,7 +145,8 @@ debug_play(Board) :-
 
 debug_play(Board, [Z,Y,X]) :-
   play(Board, [Z,Y,X], Val, Branches, Time),
-  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d, Time = ~1fms.', [Z,Y,X,Val,Branches,Time]), nl, !.
+  nl, format('Move: ~d/~d/~d, Val = ~d, Branches = ~d, Time = ~1fms.', [Z,Y,X,Val,Branches,Time]), nl,
+  !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
