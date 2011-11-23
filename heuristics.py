@@ -1,6 +1,7 @@
 print ':- module(heuristics,'
 print '        [ first_move/2,          % The heuristic for first move'
-print '          value/3                % The heuristic for board state'
+print '          value/3,               % The heuristic for board state'
+print '          wins/2                 % Whether some player wins'
 print '        ]).'
 print ''
 print ':- use_module(board,'
@@ -43,7 +44,7 @@ print 'w(0,0) :- !.      % no pieces, then 0'
 print 'w(1,100) :- !.    % one piece, then 100'
 print 'w(2,1000) :- !.   % two pieces, then 1000'
 print 'w(3,10000) :- !.  % three pieces, then 10000'
-print 'w(4,100000) :- !. % four pieces, then 100000'
+print 'w(4,900000) :- !. % four pieces, then 900000'
 print ''
 print 'weight(A,B,C,D,Player,W) :-'
 print '  ('
@@ -196,7 +197,7 @@ def heuristics():
 	for j in range(0,i-1):
 		l.append('S%d' % (j+1))
 
-	print '  W is ' + '+'.join(l) + ', !.'
+	print '  W is ' + ' + '.join(l) + ', !.'
 	print ''
 
 	for z in range(0,4):
@@ -209,6 +210,10 @@ def heuristics():
 
 heuristics()
 
+print 'wins(Board, Player) :-'
+print '  h_func(Board, Player, W),'
+print '  w(4, Wins), W >= Wins, !.'
+print ''
 print 'first_move(BestMove, BestValue) :-'
 print '  board:empty_board(E),'
 print '  board:moves(E, Moves),'

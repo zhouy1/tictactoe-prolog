@@ -28,25 +28,43 @@
 %%%               Initiate should be yes or no, and indicates if
 %%%                        it should initiate the game.
 
-game(In/Out, Initiate) :-
+game(In/Out, no) :-
   board:empty_board(Board),
-  game(In/Out, Board, Initiate).
+  turn(In/Out, Board), !.
 
-game(In/Out, Board, Initiate) :-
-  opponent_move(In/Out, Board, Initiate, OpponentBoard),
+game(In/Out, yes) :-
+  board:empty_board(Board),
+  write('--- Yew! Initiating the game!'), nl,
+  my_move(In/Out, Board, MyBoard),
+  turn(In/Out, MyBoard), !.
+
+turn(In/Out, Board) :-
+  opponent_move(In/Out, Board, OpponentBoard),
+  opponent_wins(Board) ->
+  (
+    write('<<< I loose!')
+  ) ;
+  (
+    my_move(In/Out, OpponentBoard, MyBoard),
+    i_win(MyBoard) ->
+    (
+      write('<<< I win!'), nl
+    ) ;
+    (
+      turn(In/Out, MyBoard)
+    )
+  ), !.
+
+my_move(In/Out, Board, MyBoard) :-
   write('--- Thinking...'), nl,
-  board:me(Me), play(OpponentBoard, MyMove, _, _, _),
+  board:me(Me), play(Board, MyMove, _, _, _),
   [X,Y,Z] = MyMove,
   format('--- My move: ~d/~d/~d', [X,Y,Z]), nl,
-  board:put(OpponentBoard, MyMove, Me, MyBoard),
+  board:put(Board, MyMove, Me, MyBoard),
   board:print_board(MyBoard),
-  send_move(In/Out, MyMove),
-  game(In/Out, MyBoard, no), !.
+  send_move(In/Out, MyMove), !.
 
-opponent_move(_, Board, yes, Board) :-
-  write('--- Yew! Initiating the game!'), nl, !.
-
-opponent_move(In/Out, Board, no, OpponentBoard) :-
+opponent_move(In/Out, Board, OpponentBoard) :-
   board:me(Me), board:opponent(Me, Opponent),
   write('--- Waiting for opponent move...'), nl,
   receive_move(In, Out, Board, OpponentMove),
