@@ -9,7 +9,7 @@
 
 :- use_module(board,
         [ empty_board/1,
-          opponent/2,
+          opponent/1,
           print_board/1,
           put/4
         ]).
@@ -63,19 +63,20 @@ opponent_wins(Board) :-
 
 my_move(In/Out, Board, MyBoard) :-
   write('--- Thinking...'), nl,
-  board:me(Me), play(Board, MyMove, _, _, _),
+  play(Board, MyMove, _, _, _),
   [X,Y,Z] = MyMove,
   format('--- My move: ~d/~d/~d', [X,Y,Z]), nl,
+  board:me(Me),
   board:put(Board, MyMove, Me, MyBoard),
   board:print_board(MyBoard),
   send_move(In/Out, MyMove), !.
 
 opponent_move(In/Out, Board, OpponentBoard) :-
-  board:me(Me), board:opponent(Me, Opponent),
   write('--- Waiting for opponent move...'), nl,
   receive_move(In, Out, Board, OpponentMove),
   [Z,Y,X] = OpponentMove,
   format('--- Opponent move: ~d,~d,~d', [Z,Y,X]), nl,
+  board:opponent(Opponent),
   board:put(Board, OpponentMove, Opponent, OpponentBoard),
   board:print_board(OpponentBoard), !.
 

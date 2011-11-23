@@ -6,7 +6,7 @@
 
 :- use_module(board,
         [ me/1,
-          opponent/2,
+          opponent/1,
           empty_board/1,
           moves/2
         ]).
@@ -40,9 +40,12 @@ score(A, B, C, D, Player, W) :-
 in_row([], _, Sum, Sum).
 
 in_row([H|T], Player, Aux, Sum) :-
-  H = Player -> Aux1 is Aux+1 ;
-  H = 0 -> Aux1 is Aux,
-  find(T, Player, Aux1, Sum).
+  (
+    H = Player, Aux1 is Aux+1
+    ;
+    H = 0, Aux1 is Aux
+  ),
+  in_row(T, Player, Aux1, Sum).
 
 wins(
   X00/X01/X02/X03 / X10/X11/X12/X13 / X20/X21/X22/X23 / X30/X31/X32/X33 /
@@ -121,7 +124,7 @@ first_move(Move1/Val1, _, Move1/Val1).
 
 value(Board, Player, Val) :-
   board:me(Me),
-  board:opponent(Me, Opponent),
+  board:opponent(Opponent),
   h_func(Board, Me, W1),
   h_func(Board, Opponent, W2),
   scoreof(W1, W2, Player, Val).
