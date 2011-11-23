@@ -42,7 +42,7 @@ turn(In/Out, Board) :-
   opponent_move(In/Out, Board, OpponentBoard),
   opponent_wins(Board) ->
   (
-    write('<<< I loose!')
+    write('<<< I loose!'), nl
   ) ;
   (
     my_move(In/Out, OpponentBoard, MyBoard),
@@ -54,6 +54,12 @@ turn(In/Out, Board) :-
       turn(In/Out, MyBoard)
     )
   ), !.
+
+i_win(Board) :-
+  board:me(X), win(Board, X).
+
+opponent_wins(Board) :-
+  board:opponent(X), win(Board, X).
 
 my_move(In/Out, Board, MyBoard) :-
   write('--- Thinking...'), nl,
@@ -118,7 +124,7 @@ is_valid(Board, [Z,Y,X]) :-
   Y >= 0, Y =< 3,
   Z >= 0, Z =< 3,
   % the position should be empty
-  moves:is_empty(Board, [Z,Y,X]).
+  board:is_empty(Board, [Z,Y,X]).
 
 debug_play(Board) :-
   debug_play(Board, _), !.

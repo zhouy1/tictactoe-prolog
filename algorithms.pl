@@ -4,7 +4,7 @@
 
 :- use_module(board,
         [ moves/2,
-          opponent/2,
+          opponent/1,
           me/1
         ]).
 
@@ -91,6 +91,5 @@ player(max, X) :- % max = it's me!
   board:me(X), !.  
 
 player(_, X) :-   % min = my opponent!
-  board:me(Y),
-  board:opponent(Y, X), !.
+  board:opponent(X), !.
 
