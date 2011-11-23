@@ -1,6 +1,6 @@
 :- module(game,
         [ game/2,                % the game engine
-          play/4                 % The 4x4x4 tic-tac-toe computer player
+          play/5                 % The 4x4x4 tic-tac-toe computer player
         ]).
 
 :- use_module(algorithms,
@@ -73,7 +73,7 @@ opponent_move(In/Out, Board, OpponentBoard) :-
   board:put(Board, OpponentMove, Opponent, OpponentBoard),
   board:print_board(OpponentBoard), !.
 
-play(Board, Move, Val, 0) :-
+play(Board, Move, Val, 0, 0) :-
   board:empty_board(Board),
   heuristics:first_move(Move, Val), !.
 

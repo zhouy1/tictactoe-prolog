@@ -45,27 +45,7 @@ for z in range(0,4):
 			print ") :- !."
 			print ""
 
-def draw_empty(x, y, z):
-	board=[]
-	for k in range(0,4):
-	    plane=[]
-	    for j in range(0,4):
-	        line=[]
-	        for i in range(0,4):
-	            if (z == 3-k and y == j and x == i):
-	                line.append("X")
-	            else:
-	                line.append("_")
-	        plane.append("  " + " / ".join(line))
-	    board.append(" /\n".join(plane))
-	return " /\n\n".join(board)
-
-for z in range(0,4):
-	for y in range(0,4):
-		for x in range(0,4):
-			print 'is_empty('
-			print draw_empty(x,y,z) + ","
-			print '  [%d, %d, %d]) :- ' % (z,y,x)
-			print '  X = 0, !.'
-			print ''
+print 'is_empty(Board, Pos) :-'
+print '  put(_, Pos, X, Board), X = 0.'
+print ''
 
