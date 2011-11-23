@@ -34,35 +34,37 @@
 
 go(I/O, no) :-
   board:empty_board(Board),
-  opponent_turn(I/O, Board), !.
+  opponent_turn(I/O, Board, 1), !.
 
 go(I/O, yes) :-
   board:empty_board(Board),
   write('--- Yew! Initiating the game!'), nl,
-  my_turn(I/O, Board), !.
+  my_turn(I/O, Board, 1), !.
 
-opponent_turn(I/O, Board) :-
-  opponent_move(I/O, Board, OpponentBoard),
+opponent_turn(I/O, Board, N) :-
+  opponent_move(I/O, Board, OpponentBoard, N),
   (
     opponent_wins(OpponentBoard),
-    write('<<< I loose. :('), nl
+    format('<<< [~d] I loose. :(',[N]),nl
     ;
     draw(OpponentBoard),
-    write('<<< Draw...'), nl
+    format('<<< [~d] Draw...',[N]),nl
     ;
-    my_turn(I/O, OpponentBoard)
+    N1 is N+1,
+    my_turn(I/O, OpponentBoard, N1)
   ), !.
 
-my_turn(I/O, Board) :-
-  my_move(I/O, Board, MyBoard),
+my_turn(I/O, Board, N) :-
+  my_move(I/O, Board, MyBoard, N),
   (
     i_win(MyBoard),
-    write('<<< I win!'), nl
+    format('<<< [~d] I win!',[N]),nl
     ;
     draw(MyBoard),
-    write('<<< Draw...'), nl
+    format('<<< [~d] Draw...',[N]),nl
     ;
-    opponent_turn(I/O, MyBoard)
+    N1 is N+1,
+    opponent_turn(I/O, MyBoard, N1)
   ), !.
 
 i_win(Board) :-
@@ -74,21 +76,22 @@ opponent_wins(Board) :-
 draw(Board) :-
   board:moves(Board,[]).
 
-my_move(I/O, Board, MyBoard) :-
+my_move(I/O, Board, MyBoard, N) :-
   write('--- Thinking...'), nl,
-  play(Board, MyMove, _, _, _),
+  play(Board, MyMove, Val, Branches, Time),
+  format('Val = ~d, Branches = ~d, Time = ~1fms.', [Val,Branches,Time]), nl,
   [X,Y,Z] = MyMove,
-  format('--- My move: ~d/~d/~d', [X,Y,Z]), nl,
+  format('--- [~d] My move: ~d/~d/~d', [N,X,Y,Z]), nl,
   board:me(Me),
   board:put(Board, MyMove, Me, MyBoard),
   nl,board:print_board(MyBoard),
   send_move(I/O, MyMove), !.
 
-opponent_move(I/O, Board, OpponentBoard) :-
+opponent_move(I/O, Board, OpponentBoard, N) :-
   write('--- Waiting for opponent move...'), nl,
   receive_move(I/O, Board, OpponentMove),
   [Z,Y,X] = OpponentMove,
-  format('--- Opponent move: ~d,~d,~d', [Z,Y,X]), nl,
+  format('--- [~d] Opponent move: ~d,~d,~d', [N,Z,Y,X]), nl,
   board:opponent(Opponent),
   board:put(Board, OpponentMove, Opponent, OpponentBoard),
   nl,board:print_board(OpponentBoard), !.
